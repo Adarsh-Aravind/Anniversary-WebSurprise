@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Flight Notes</title>
+  <meta name="description" content="Flight planning notes.">
+  <meta name="theme-color" content="#050a17">
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%23f7bd4f' d='M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z'/></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/theme.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Quick hide: one tap swaps to boring study notes. -->
+  <button id="hide-btn" class="hide-btn" type="button" aria-label="Quick hide" title="Quick hide">
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18M10.6 5.1A9.8 9.8 0 0 1 12 5c5 0 9 4.5 10 7-.4 1-1.3 2.4-2.6 3.7M6.6 6.6C4.4 8 2.9 10 2 12c1 2.5 5 7 10 7 1.9 0 3.6-.6 5.1-1.5M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+  </button>
+
+  <div id="decoy" class="decoy" hidden>
+    <article class="decoy-page">
+      <p class="decoy-crumb">Ground School / Meteorology / Week 6</p>
+      <h1 id="decoy-title" class="decoy-title">METAR decoding — revision notes</h1>
+      <p class="decoy-meta">Last edited 2 days ago</p>
+
+      <h2>Example</h2>
+      <pre>OMDB 291400Z 33012KT 9999 FEW040 36/18 Q1004 NOSIG</pre>
+      <table>
+        <tr><th>OMDB</th><td>Station — Dubai International</td></tr>
+        <tr><th>291400Z</th><td>Day 29, 1400 UTC</td></tr>
+        <tr><th>33012KT</th><td>Wind from 330° at 12 knots</td></tr>
+        <tr><th>9999</th><td>Visibility 10 km or more</td></tr>
+        <tr><th>FEW040</th><td>Few clouds at 4,000 ft</td></tr>
+        <tr><th>36/18</th><td>Temperature 36 °C, dew point 18 °C</td></tr>
+        <tr><th>Q1004</th><td>QNH 1004 hPa</td></tr>
+        <tr><th>NOSIG</th><td>No significant change expected</td></tr>
+      </table>
+
+      <h2>To revise</h2>
+      <ul>
+        <li>QNH vs QFE — which one reads zero on the runway?</li>
+        <li>CAVOK conditions: vis ≥ 10 km, no cloud below 5,000 ft, no CB/TCU</li>
+        <li>Density altitude on hot days → longer takeoff roll</li>
+        <li>TAF validity periods and PROB30/PROB40</li>
+      </ul>
+
+      <h2>Before takeoff checklist</h2>
+      <ol>
+        <li>Flight controls — free and correct</li>
+        <li>Instruments — set and checked</li>
+        <li>Fuel — on, sufficient</li>
+        <li>Flaps — set for takeoff</li>
+        <li>Harness — secure, doors closed</li>
+      </ol>
+    </article>
+  </div>
+
+  <div id="app">
+    <!-- 1. Countdown until midnight in Dubai -->
+    <section id="screen-countdown" class="screen" hidden>
+      <div class="screen-inner">
+        <span class="label">Flight notes · Entry 03</span>
+        <h1 class="display">Boarding opens at <em>midnight</em>.</h1>
+        <div class="countdown" role="timer" aria-live="off">
+          <div><span id="cd-d">00</span><small>days</small></div>
+          <div><span id="cd-h">00</span><small>hrs</small></div>
+          <div><span id="cd-m">00</span><small>min</small></div>
+          <div><span id="cd-s">00</span><small>sec</small></div>
+        </div>
+        <div class="clocks">
+          <div class="clock">
+            <span class="clock-who">Your trip · Dubai</span>
+            <span class="clock-time" data-tz="Asia/Dubai">--:--</span>
+            <span class="clock-zone">GST · UTC+4</span>
+          </div>
+          <div class="clock-link" aria-hidden="true">
+            <svg viewBox="0 0 60 12" width="60" height="12"><path d="M1 6h58" stroke="currentColor" stroke-dasharray="3 4"/></svg>
+            <span class="pulse-heart">♥</span>
+          </div>
+          <div class="clock">
+            <span class="clock-who">Me · Alappuzha</span>
+            <span class="clock-time" data-tz="Asia/Kolkata">--:--</span>
+            <span class="clock-zone">IST · UTC+5:30</span>
+          </div>
+        </div>
+        <p class="tagline">Different time zones, same heartbeat.</p>
+      </div>
+    </section>
+
+    <!-- 2. Pre-flight checklist + passcode -->
+    <section id="screen-checklist" class="screen" hidden>
+      <div class="screen-inner">
+        <span class="label">Pre-flight checklist</span>
+        <h1 class="display">Before we take off, <em>Captain</em>.</h1>
+        <ul class="checklist">
+          <li><button type="button" role="checkbox" aria-checked="false"><span class="box"></span>Somewhere alone, away from curious eyes</button></li>
+          <li><button type="button" role="checkbox" aria-checked="false"><span class="box"></span>Seatbelt fastened, volume low</button></li>
+          <li><button type="button" role="checkbox" aria-checked="false"><span class="box"></span>Ready to smile a lot</button></li>
+        </ul>
+        <form id="pass-form" class="pass-form" autocomplete="off">
+          <label for="pass" class="label">Clearance code</label>
+          <div class="pass-row">
+            <input id="pass" type="password" inputmode="text" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="••••••" disabled>
+            <button type="submit" class="btn-primary" disabled>Request clearance</button>
+          </div>
+          <p id="pass-hint" class="pass-hint"></p>
+          <p id="pass-error" class="pass-error" role="alert"></p>
+          <div id="pass-help" class="pass-help" aria-live="polite"></div>
+        </form>
+      </div>
+    </section>
+
+    <!-- 3. Takeoff animation -->
+    <section id="screen-takeoff" class="screen takeoff" hidden aria-live="polite">
+      <div class="runway" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+      <svg class="takeoff-plane" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>
+      <p class="takeoff-text"><span class="label">Tower</span><br>Cleared for takeoff.</p>
+    </section>
+
+    <!-- 4. The log itself, rendered by app.js after decryption -->
+    <main id="log" hidden></main>
+  </div>
+
+  <dialog id="letter" class="letter">
+    <article class="letter-paper">
+      <header>
+        <span id="letter-meta" class="letter-meta"></span>
+        <button type="button" class="letter-close" aria-label="Close">✕</button>
+      </header>
+      <h2 id="letter-title"></h2>
+      <div id="letter-body" class="letter-body"></div>
+      <p class="letter-sign">— over and out ♥</p>
+    </article>
+  </dialog>
+
+  <script src="../assets/sky.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

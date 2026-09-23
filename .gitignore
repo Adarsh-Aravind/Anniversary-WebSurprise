@@ -1,0 +1,8 @@
+# Your letters and photos live here. Never upload them.
+private/
+
+# Visual Studio
+.vs/
+
+# Local preview server config
+.claude/

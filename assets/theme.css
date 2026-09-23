@@ -1,0 +1,91 @@
+/* Shared night-flight theme for the logbook hub and each year's entry. */
+:root {
+  --sky-0: #050a17;
+  --sky-1: #0a1430;
+  --sky-2: #16224a;
+  --panel: rgba(20, 32, 64, 0.55);
+  --panel-strong: rgba(16, 26, 54, 0.86);
+  --line: rgba(170, 195, 255, 0.14);
+  --line-strong: rgba(170, 195, 255, 0.28);
+  --ink: #eef2ff;
+  --muted: #9ba8cb;
+  --faint: #66739a;
+  --amber: #f7bd4f;
+  --amber-soft: rgba(247, 189, 79, 0.14);
+  --rose: #ff8fab;
+  --rose-soft: rgba(255, 143, 171, 0.14);
+  --green: #6fe3b4;
+  --paper: #fbf5ea;
+  --paper-ink: #2b2233;
+  --paper-muted: #7a6c78;
+
+  --font-display: "Fraunces", Georgia, serif;
+  --font-body: "DM Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+
+  --radius: 18px;
+  --gutter: 16px;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background:
+    radial-gradient(120% 70% at 80% -10%, rgba(255, 143, 171, 0.12), transparent 60%),
+    radial-gradient(90% 60% at 0% 10%, rgba(88, 120, 255, 0.16), transparent 60%),
+    linear-gradient(180deg, var(--sky-0) 0%, var(--sky-1) 55%, var(--sky-2) 100%);
+  background-attachment: fixed;
+  background-color: var(--sky-0);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+img { max-width: 100%; display: block; }
+button { font: inherit; color: inherit; }
+a { color: inherit; }
+:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; border-radius: 6px; }
+
+.mono { font-family: var(--font-mono); letter-spacing: 0.04em; }
+.label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--amber);
+}
+
+/* Starfield, filled in by assets/sky.js */
+.sky { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0.2;
+  animation: twinkle var(--d, 4s) ease-in-out var(--delay, 0s) infinite alternate;
+}
+@keyframes twinkle { to { opacity: var(--peak, 0.9); } }
+.shooting {
+  position: absolute;
+  width: 120px; height: 1px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.9), transparent);
+  transform: rotate(-18deg);
+  opacity: 0;
+  animation: shoot 1.4s ease-out forwards;
+}
+@keyframes shoot {
+  0% { opacity: 0; translate: 0 0; }
+  15% { opacity: 1; }
+  100% { opacity: 0; translate: -340px 110px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+}
