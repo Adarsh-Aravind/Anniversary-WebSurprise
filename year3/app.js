@@ -240,7 +240,7 @@ function renderLog() {
     renderFinal(),
     h("footer", { class: "log-foot" },
       h("a", { href: "../", class: "back-link" }, "← Back to the logbook"),
-      h("span", { class: "mono" }, "LOG 03 · END OF ENTRY"))
+      h("span", { class: "mono" }, "LOG 02 · END OF ENTRY"))
   );
   observeReveals();
   if (store.get("y3-won", false)) unlockFinal(false);
@@ -249,15 +249,15 @@ function renderLog() {
 function renderHero() {
   const hero = content.hero || {};
   return h("header", { class: "hero" },
-    h("span", { class: "label" }, hero.kicker || "Flight Log · Entry 03"),
-    h("h1", { class: "display hero-title" }, hero.title || `Three years airborne, ${content.name}.`),
+    h("span", { class: "label" }, hero.kicker || "Flight Log · Entry 02"),
+    h("h1", { class: "display hero-title" }, hero.title || `Two years airborne, ${content.name}.`),
     h("p", { class: "hero-sub" }, hero.subtitle || ""),
     h("span", { class: "scroll-cue", "aria-hidden": "true" }, "Scroll", h("i")));
 }
 
 // #2 — Logbook stats
 function renderStats() {
-  const start = Date.parse(`${content.relationshipStart || "2023-09-29"}T00:00:00+05:30`);
+  const start = Date.parse(`${content.relationshipStart || "2024-09-29"}T00:00:00+05:30`);
   const days = Math.max(0, Math.floor((now() - start) / 86400000));
   const stat = (value, label) => h("div", { class: "stat" }, h("span", { class: "stat-value" }, value), h("span", { class: "stat-label" }, label));
 
@@ -344,7 +344,7 @@ function openLetter(meta, title, body) {
 $(".letter-close", dialog).addEventListener("click", () => dialog.close());
 dialog.addEventListener("click", (e) => { if (e.target === dialog) dialog.close(); });
 
-// #5 — 1,095 reasons
+// #5 — 730 reasons
 function renderReasons() {
   const reasons = (content.reasons || []).filter((r) => !/^\[.*\]$/.test(r.trim()));
   let order = [];
@@ -354,7 +354,7 @@ function renderReasons() {
   };
   reshuffle();
 
-  const num = h("span", { class: "reason-num mono" }, "Reason #— of 1,095");
+  const num = h("span", { class: "reason-num mono" }, "Reason #— of 730");
   const text = h("p", { class: "reason-text" }, "Tap the button. I'll start.");
   const card = h("div", { class: "reason-card" }, h("span", { class: "reason-quote", "aria-hidden": "true" }, "“"), text, num);
   const btn = h("button", { class: "btn-primary", type: "button" }, "Tell me why ♥");
@@ -370,12 +370,12 @@ function renderReasons() {
     }
     const i = order.pop();
     text.textContent = reasons[i];
-    num.textContent = `Reason #${String(i + 1).padStart(3, "0")} of 1,095`;
+    num.textContent = `Reason #${String(i + 1).padStart(3, "0")} of 730`;
     btn.textContent = "Another one ♥";
   });
 
-  return section("reasons", "04", "Reasons", "1,095 reasons I choose you",
-    h("p", { class: "sec-lede" }, "Three years is about 1,095 days. One reason for every single one of them."),
+  return section("reasons", "04", "Reasons", "730 reasons I choose you",
+    h("p", { class: "sec-lede" }, "Two years is about 730 days. One reason for every single one of them."),
     card, h("div", { class: "reason-actions" }, btn));
 }
 
@@ -529,7 +529,7 @@ function unlockFinal(celebrate) {
           h("span", { class: "bp-airline" }, "✈ Co-Pilot Airways"),
           h("span", { class: "bp-kind mono" }, "Boarding pass")),
         h("div", { class: "bp-route" },
-          h("div", {}, h("span", { class: "bp-code" }, bp.fromCode || "Y03"), h("span", { class: "bp-city" }, bp.fromCity || "Year three")),
+          h("div", {}, h("span", { class: "bp-code" }, bp.fromCode || "Y02"), h("span", { class: "bp-city" }, bp.fromCity || "Year two")),
           h("span", { class: "bp-arrow", "aria-hidden": "true" }, "✈"),
           h("div", { class: "bp-dest" }, h("span", { class: "bp-code" }, bp.toCode || "♡"), h("span", { class: "bp-city" }, bp.toCity || "My Arms"))),
         h("div", { class: "bp-grid" },

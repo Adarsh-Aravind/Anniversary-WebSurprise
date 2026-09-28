@@ -1,4 +1,4 @@
-# Flight Log · Year 3: how to finish and send it
+# Flight Log · Year 2: how to finish and send it
 
 ## 1. Write your letters
 Open `private/content.js` and edit everything. Replace every `[bracketed]` bit with your real memories, and change the `passcodeHint`. The hint is shown **before** the passcode, so anyone can read it.

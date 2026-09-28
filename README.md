@@ -4,15 +4,15 @@ An aviation-themed web experience, released as one new "log entry" each year. It
 
 | Log | Year | Entry |
 |---|---|---|
-| 02 | 2025 | Memory matching game ([`2025-year2-memory-game/`](2025-year2-memory-game/)) |
-| 03 | 2026 | Flight Log: encrypted interactive story ([`year3/`](year3/)) |
-| 04 | 2027 | *Scheduled* |
+| 01 | 2025 | Memory matching game ([`2025-year2-memory-game/`](2025-year2-memory-game/)) |
+| 02 | 2026 | Flight Log: encrypted interactive story ([`year3/`](year3/)) |
+| 03 | 2027 | *Scheduled* |
 
 The root [`index.html`](index.html) is a logbook hub that links to each entry.
 
 ---
 
-## Features (Log 03)
+## Features (Log 02)
 
 - **Timed unlock:** the page stays behind a live countdown until a set date and time. It shows dual time-zone clocks.
 - **Pre-flight gate:** a short checklist, then a passcode prompt. After repeated wrong attempts it shows progressive hints (a picture, then a partial pattern, then a "contact me" message). It never shows the passcode itself.
@@ -58,13 +58,13 @@ All personal material lives in `private/`, which is **git-ignored and never comm
 │   ├── index.html             Gate screens, decoy page, letter dialog
 │   ├── app.js                 Countdown, passcode, decryption, section rendering
 │   ├── movie.js               In-flight movie player
-│   ├── style.css              Log 03 styles
+│   ├── style.css              Log 02 styles
 │   ├── sealed.json            Generated: encrypted content
 │   └── data/                  Generated: encrypted photos
 ├── tools/
 │   ├── seal.js                Encrypts private/ into year3/ (Node, no dependencies)
 │   └── shrink-photos.ps1      Resizes photos to 1400px JPEG (Windows)
-├── 2025-year2-memory-game/    Log 02, kept as originally built
+├── 2025-year2-memory-game/    Log 01, kept as originally built
 ├── DEPLOY.md                  Step-by-step publishing checklist
 └── private/                   Git-ignored: content.js and photos/
 ```
@@ -106,7 +106,7 @@ The site deploys as-is to **GitHub Pages**, with no build step:
 2. In the repository, go to **Settings → Pages → Deploy from a branch → `main` / `(root)`**.
 3. Share the `/year3/` URL.
 
-`.nojekyll` is included so Pages serves the files unchanged. The hub and Log 03 pages ask search engines not to index them (`noindex, nofollow`).
+`.nojekyll` is included so Pages serves the files unchanged. The hub and Log 02 pages ask search engines not to index them (`noindex, nofollow`).
 
 See [`DEPLOY.md`](DEPLOY.md) for the full checklist.
 

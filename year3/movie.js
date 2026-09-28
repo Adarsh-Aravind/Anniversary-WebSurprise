@@ -61,16 +61,16 @@ export function initMovie(root, movie, { onEnd }) {
   const toggleBtn = root.querySelector('[data-act="toggle"]');
 
   $(".ife-title").textContent = movie.title || "US";
-  $(".ife-year").textContent = `(${movie.year || "2023 – ∞"})`;
+  $(".ife-year").textContent = `(${movie.year || "2024 – ∞"})`;
   $(".ife-tagline").textContent = movie.tagline || "";
-  $(".ife-runtime").textContent = `Runtime: ${movie.runtime || "3 years & counting"}`;
+  $(".ife-runtime").textContent = `Runtime: ${movie.runtime || "2 years & counting"}`;
   $(".ife-starring").textContent = [
     movie.starring && `Starring ${movie.starring}`,
     movie.song && `♫ ${movie.song.title} · ${movie.song.artist}`,
   ].filter(Boolean).join("  ·  ");
 
   const roll = $(".ife-roll");
-  roll.append(Object.assign(document.createElement("p"), { className: "ife-roll-title", textContent: `${movie.title || "US"} (${movie.year || "2023 – ∞"})` }));
+  roll.append(Object.assign(document.createElement("p"), { className: "ife-roll-title", textContent: `${movie.title || "US"} (${movie.year || "2024 – ∞"})` }));
   for (const [role, name] of movie.credits || []) {
     const row = document.createElement("p");
     row.className = "ife-credit";
