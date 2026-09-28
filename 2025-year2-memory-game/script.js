@@ -2,25 +2,57 @@
 const gameBoard = document.querySelector('.memory-game');
 const floatingElementsContainer = document.querySelector('.floating-elements');
 
-// An array holding the names of your images
-// Make sure these names match the files in your 'images' folder!
-const imageNames = ['image1', 'image2', 'image3', 'image4', 'image5', 'image6'];
+// The photos are the encrypted ones from Year 3 (../year3/sealed.json), unlocked
+// with the same passcode. These are our year-two photos, in order of preference.
+const PREFERRED_PHOTOS = ['scene1.webp', 'scene2.jpg', 'scene3.jpg', 'scene4.jpg', 'scene5.jpg', 'story3.jpg'];
+const PAIRS = 6;
 
-// We need two of each card for a match
-const cardImages = [...imageNames, ...imageNames];
+// Filled in after unlocking: photo name -> object URL
+let photoUrls = {};
+let imageNames = [];
+let cardImages = [];
 
 // --- GAME STATE VARIABLES ---
 let hasFlippedCard = false;
 let lockBoard = false;
 let firstCard, secondCard;
 let matchedPairs = 0;
-const totalPairs = imageNames.length;
+let totalPairs = 0;
 
 // --- FUNCTIONS ---
 
-// Function to shuffle the card images randomly
+// Function to shuffle the card images randomly (Fisher-Yates)
 function shuffle(array) {
-    array.sort(() => Math.random() - 0.5);
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+
+// --- UNLOCKING THE PHOTOS (same PBKDF2 -> AES-GCM as year3/app.js) ---
+const fromB64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+
+async function unlockPhotos(passcode) {
+    const sealed = await fetch('../year3/sealed.json', { cache: 'no-cache' }).then((r) => r.json());
+    const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(passcode.trim().toLowerCase()), 'PBKDF2', false, ['deriveKey']);
+    const key = await crypto.subtle.deriveKey(
+        { name: 'PBKDF2', salt: fromB64(sealed.salt), iterations: sealed.iter, hash: 'SHA-256' },
+        base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']
+    );
+    const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: fromB64(sealed.iv) }, key, fromB64(sealed.data));
+    const photos = JSON.parse(new TextDecoder().decode(plain)).photos || {};
+
+    const available = Object.keys(photos);
+    const names = PREFERRED_PHOTOS.filter((n) => photos[n]);
+    for (const n of available) if (names.length < PAIRS && !names.includes(n)) names.push(n);
+
+    const urls = {};
+    await Promise.all(names.map(async (name) => {
+        const buf = await fetch(`../year3/${photos[name].src}`).then((r) => r.arrayBuffer());
+        const img = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: new Uint8Array(buf, 0, 12) }, key, new Uint8Array(buf, 12));
+        urls[name] = URL.createObjectURL(new Blob([img], { type: photos[name].type }));
+    }));
+    return urls;
 }
 
 // Function to create the HTML for each card and add it to the board
@@ -33,7 +65,7 @@ function createBoard() {
         card.dataset.name = imageName;
 
         card.innerHTML = `
-            <img class="front-face" src="Images/${imageName}.jpg" alt="${imageName}">
+            <img class="front-face" src="${photoUrls[imageName]}" alt="">
             <div class="back-face">?</div>
         `;
 
@@ -127,7 +159,38 @@ function createFloatingLoveElements(count) {
 }
 
 // --- START THE GAME ---
-createBoard();
+const unlockForm = document.querySelector('#unlock');
+const passInput = document.querySelector('#pass');
+const errorText = document.querySelector('#error');
+const startButton = unlockForm.querySelector('button');
+
+fetch('../year3/sealed.json', { cache: 'no-cache' })
+    .then((r) => r.json())
+    .then((s) => { if (s.hint) document.querySelector('#hint').textContent = `Hint: ${s.hint}`; })
+    .catch(() => {});
+
+unlockForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!passInput.value.trim()) return;
+    startButton.disabled = true;
+    startButton.textContent = 'Loading…';
+    errorText.textContent = '';
+    try {
+        photoUrls = await unlockPhotos(passInput.value);
+        imageNames = Object.keys(photoUrls);
+        cardImages = [...imageNames, ...imageNames];
+        totalPairs = imageNames.length;
+        unlockForm.remove();
+        gameBoard.hidden = false;
+        createBoard();
+    } catch {
+        errorText.textContent = "That's not it. Try again.";
+        startButton.disabled = false;
+        startButton.textContent = 'Start';
+        passInput.select();
+    }
+});
+
 createFloatingLoveElements(15);
 
 

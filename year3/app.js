@@ -13,9 +13,6 @@ const now = () => Date.now() + clockOffset;
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const dubaiMidnight = (isoDate) => Date.parse(`${isoDate}T00:00:00+04:00`);
 
-const HOME = { lat: 9.4981, lon: 76.3388 };   // Alappuzha
-const AWAY = { lat: 25.2048, lon: 55.2708 };  // Dubai
-const RETURN_DATE = "2026-10-04";
 
 // ---------------------------------------------------------------------
 //  Small helpers
@@ -66,31 +63,10 @@ function fmtLeft(ms) {
   return `${min}m`;
 }
 
-function haversineKm(a, b) {
-  const R = 6371, rad = (x) => (x * Math.PI) / 180;
-  const dLat = rad(b.lat - a.lat), dLon = rad(b.lon - a.lon);
-  const s = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLon / 2) ** 2;
-  return 2 * R * Math.asin(Math.sqrt(s));
-}
-
 function showScreen(id) {
   for (const s of $$("#app > .screen, #log")) s.hidden = s.id !== id;
   window.scrollTo(0, 0);
 }
-
-// ---------------------------------------------------------------------
-//  Live clocks (countdown screen + hero)
-// ---------------------------------------------------------------------
-const clockFormats = {};
-function tickClocks() {
-  const d = new Date(now());
-  for (const el of $$(".clock-time[data-tz]")) {
-    const tz = el.dataset.tz;
-    clockFormats[tz] ??= new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false, timeZone: tz });
-    el.textContent = clockFormats[tz].format(d);
-  }
-}
-setInterval(tickClocks, 1000);
 
 // ---------------------------------------------------------------------
 //  Crypto: PBKDF2 -> AES-GCM, matching tools/seal.js
@@ -139,7 +115,7 @@ function photo(name, alt, cls) {
 }
 
 // ---------------------------------------------------------------------
-//  Screen 1: countdown to midnight in Dubai
+//  Screen 1: countdown to midnight (India time)
 // ---------------------------------------------------------------------
 function startCountdown() {
   showScreen("screen-countdown");
@@ -255,115 +231,42 @@ function renderLog() {
   const log = $("#log");
   log.replaceChildren(
     renderHero(),
-    renderDistance(),
+    renderStats(),
     renderStory(),
     renderLetters(),
     renderReasons(),
+    renderRadio(),
     renderMovie(),
     renderFinal(),
     h("footer", { class: "log-foot" },
       h("a", { href: "../", class: "back-link" }, "← Back to the logbook"),
-      h("span", { class: "mono" }, "LOG 03 · END OF ENTRY · ALP ⇄ DXB"))
+      h("span", { class: "mono" }, "LOG 03 · END OF ENTRY"))
   );
-  tickClocks();
   observeReveals();
   if (store.get("y3-won", false)) unlockFinal(false);
 }
 
 function renderHero() {
   const hero = content.hero || {};
-  const clock = (who, tz, zone) => h("div", { class: "clock" },
-    h("span", { class: "clock-who" }, who),
-    h("span", { class: "clock-time", "data-tz": tz }, "--:--"),
-    h("span", { class: "clock-zone" }, zone));
   return h("header", { class: "hero" },
     h("span", { class: "label" }, hero.kicker || "Flight Log · Entry 03"),
     h("h1", { class: "display hero-title" }, hero.title || `Three years airborne, ${content.name}.`),
     h("p", { class: "hero-sub" }, hero.subtitle || ""),
-    h("div", { class: "clocks compact" },
-      clock(`${content.name} · Dubai`, "Asia/Dubai", "GST"),
-      h("div", { class: "clock-link", "aria-hidden": "true" }, h("span", { class: "pulse-heart" }, "♥")),
-      clock("Me · Alappuzha", "Asia/Kolkata", "IST")),
-    h("p", { class: "tagline" }, "Different time zones, same heartbeat."),
     h("span", { class: "scroll-cue", "aria-hidden": "true" }, "Scroll", h("i")));
 }
 
-// #2 — Miles apart map, drawn as a cockpit navigation display
-function renderDistance() {
-  const total = Math.round(haversineKm(HOME, AWAY));
-  // Equirectangular projection: lon 50..82 -> x 0..320, lat 30..4 -> y 0..260
-  const px = (p) => [(p.lon - 50) * 10, (30 - p.lat) * 10];
-  const [hx, hy] = px(HOME), [ax, ay] = px(AWAY);
-  const route = `M${hx.toFixed(1)} ${hy.toFixed(1)} Q 205 55 ${ax.toFixed(1)} ${ay.toFixed(1)}`;
-
-  let grid = "";
-  for (let x = 0; x <= 320; x += 50) grid += `<path d="M${x} 0V260"/>`;
-  for (let y = 0; y <= 260; y += 50) grid += `<path d="M0 ${y}H320"/>`;
-
-  const nav = h("div", { class: "nav-display" });
-  nav.innerHTML = `
-    <svg viewBox="0 0 320 260" role="img" aria-label="Flight path from Alappuzha to Dubai">
-      <g class="nd-grid">${grid}</g>
-      <g class="nd-rings"><circle cx="160" cy="130" r="60"/><circle cx="160" cy="130" r="110"/><circle cx="160" cy="130" r="160"/></g>
-      <text class="nd-geo" x="138" y="165">ARABIAN SEA</text>
-      <text class="nd-geo" x="262" y="95">INDIA</text>
-      <text class="nd-geo" x="18" y="80">UAE</text>
-      <path class="nd-route-bg" d="${route}"/>
-      <path class="nd-route" d="${route}" pathLength="1"/>
-      <g class="nd-point home" transform="translate(${hx} ${hy})"><circle r="4"/><text x="-8" y="18" text-anchor="end">ALP · me</text></g>
-      <g class="nd-point away" transform="translate(${ax} ${ay})"><circle class="ping" r="4"/><circle r="4"/><text x="10" y="-8">DXB · ${content.name}</text></g>
-      <g class="nd-plane"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z" transform="translate(-12 -12)"/></g>
-    </svg>`;
-
-  const km = h("span", { class: "km-num" }, fmtNum(total));
-  const caption = h("p", { class: "km-caption" }, "kilometres between us right now.");
-  const replay = h("button", { class: "btn-ghost", type: "button" }, "Fly it again ✈");
-
-  const svg = $("svg", nav), path = $(".nd-route-bg", svg), trail = $(".nd-route", svg), plane = $(".nd-plane", svg);
-  const len = path.getTotalLength();
-  function place(t) {
-    const p = path.getPointAtLength(t * len), q = path.getPointAtLength(Math.min(len, t * len + 1));
-    const angle = (Math.atan2(q.y - p.y, q.x - p.x) * 180) / Math.PI + 90;
-    plane.setAttribute("transform", `translate(${p.x} ${p.y}) rotate(${angle}) scale(0.9)`);
-    trail.style.strokeDashoffset = String(1 - t);
-    km.textContent = fmtNum(Math.round(total * (1 - t)));
-  }
-  let running = false;
-  function fly() {
-    if (running) return;
-    running = true;
-    nav.classList.remove("arrived");
-    caption.textContent = "kilometres between us right now.";
-    const start = performance.now(), dur = reduceMotion ? 1 : 5200;
-    (function frame(t) {
-      const k = Math.min(1, (t - start) / dur);
-      place(k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2);
-      if (k < 1) return requestAnimationFrame(frame);
-      running = false;
-      nav.classList.add("arrived");
-      caption.textContent = "…kilometres in my heart. You never really left it.";
-    })(start);
-  }
-  place(0);
-  replay.addEventListener("click", fly);
-  new IntersectionObserver((entries, io) => {
-    if (entries[0].isIntersecting) { io.disconnect(); setTimeout(fly, 400); }
-  }, { threshold: 0.5 }).observe(nav);
-
-  // Logbook stats
-  const days = Math.max(0, Math.floor((now() - dubaiMidnight(content.relationshipStart || "2023-09-29")) / 86400000));
-  const toLand = Math.ceil((dubaiMidnight(RETURN_DATE) - now()) / 86400000);
+// #2 — Logbook stats
+function renderStats() {
+  const start = Date.parse(`${content.relationshipStart || "2023-09-29"}T00:00:00+05:30`);
+  const days = Math.max(0, Math.floor((now() - start) / 86400000));
   const stat = (value, label) => h("div", { class: "stat" }, h("span", { class: "stat-value" }, value), h("span", { class: "stat-label" }, label));
 
-  return section("distance", "01", "Navigation", "Miles apart",
-    h("div", { class: "nav-wrap" },
-      nav,
-      h("div", { class: "km" }, h("span", { class: "label" }, `Distance to ${content.name}`), h("div", { class: "km-row" }, km, h("span", { class: "km-unit" }, "km")), caption, replay)),
+  return section("stats", "01", "Logbook", "By the numbers",
     h("div", { class: "stats" },
       stat(fmtNum(days), "days together"),
       stat(fmtNum(days * 24), "hours logged"),
       stat("1", "turbulence survived"),
-      stat(toLand > 0 ? String(toLand) : "♥", toLand > 0 ? (toLand === 1 ? "day till you land" : "days till you land") : "you've landed")));
+      stat(String(Math.floor(days / 365)), "anniversaries")));
 }
 
 // #3 — Story timeline
@@ -423,7 +326,7 @@ function renderLetters() {
   });
 
   return section("letters", "03", "Radio", "Open when…",
-    h("p", { class: "sec-lede" }, "One new transmission unlocks every midnight until you're home. The rest are for whenever you need them."),
+    h("p", { class: "sec-lede" }, "A new one unlocks every midnight for six days. The rest are for whenever you need them."),
     h("h3", { class: "sub-label label" }, "Daily transmissions · 29 SEP → 04 OCT"),
     h("div", { class: "env-grid" }, daily),
     h("h3", { class: "sub-label label" }, "Open any time"),
@@ -476,6 +379,88 @@ function renderReasons() {
     card, h("div", { class: "reason-actions" }, btn));
 }
 
+// #5 — Radio decoder: a message spelled in the pilot alphabet, decoded letter by letter
+const PHONETIC = {
+  A: "Alfa", B: "Bravo", C: "Charlie", D: "Delta", E: "Echo", F: "Foxtrot", G: "Golf", H: "Hotel", I: "India",
+  J: "Juliett", K: "Kilo", L: "Lima", M: "Mike", N: "November", O: "Oscar", P: "Papa", Q: "Quebec", R: "Romeo",
+  S: "Sierra", T: "Tango", U: "Uniform", V: "Victor", W: "Whiskey", X: "X-ray", Y: "Yankee", Z: "Zulu",
+  0: "Zero", 1: "One", 2: "Two", 3: "Tree", 4: "Fower", 5: "Fife", 6: "Six", 7: "Seven", 8: "Eight", 9: "Niner",
+};
+
+function renderRadio() {
+  const radio = content.radio || {};
+  const message = (radio.message || "").toUpperCase().replace(/[^A-Z0-9 ]/g, "").trim();
+  if (!message) return new DocumentFragment();
+
+  const tiles = [];
+  const words = message.split(/\s+/).map((word) => h("div", { class: "radio-word" },
+    [...word].map((ch) => {
+      const input = h("input", {
+        class: "radio-input", type: "text", inputmode: "text", maxlength: "1",
+        autocomplete: "off", autocapitalize: "characters", spellcheck: "false", "aria-label": PHONETIC[ch],
+      });
+      const tile = h("label", { class: "radio-tile" }, h("span", { class: "radio-code mono" }, PHONETIC[ch]), input);
+      tiles.push({ ch, input, tile });
+      return tile;
+    })));
+
+  const status = h("span", { class: "radio-status" }, "● Incoming");
+  const done = h("div", { class: "radio-done", hidden: true },
+    h("p", { class: "radio-message" }, message),
+    h("p", { class: "radio-reply" }, radio.reply || ""));
+  const panel = h("div", { class: "radio-panel" },
+    h("div", { class: "radio-head mono" },
+      h("span", {}, `FREQ ${radio.frequency || "121.50"}`),
+      h("span", {}, `FROM ${radio.from || "TOWER"}`),
+      status),
+    h("div", { class: "radio-words" }, words),
+    done);
+  const sayAgain = h("button", { class: "btn-ghost", type: "button" }, "Say again");
+  const actions = h("div", { class: "reason-actions" }, sayAgain);
+
+  const isOk = (t) => t.tile.classList.contains("ok");
+  const nextOpen = (from = -1) => tiles.find((t, i) => i > from && !isOk(t)) || tiles.find((t) => !isOk(t));
+  function lock(t) { t.input.value = t.ch; t.input.readOnly = true; t.tile.classList.add("ok"); }
+  function advance(i) { const n = nextOpen(i); if (n) n.input.focus(); else finish(true); }
+
+  function finish(celebrate) {
+    if (panel.classList.contains("solved")) return;
+    tiles.forEach(lock);
+    panel.classList.add("solved");
+    status.textContent = "Copy that ♥";
+    done.hidden = false;
+    actions.remove();
+    document.activeElement?.blur();
+    store.set("y3-radio", true);
+    if (celebrate) hearts();
+  }
+
+  tiles.forEach((t, i) => {
+    t.input.addEventListener("input", () => {
+      const v = t.input.value.slice(-1).toUpperCase();
+      if (!v) return;
+      if (v === t.ch) { lock(t); advance(i); return; }
+      t.input.value = "";
+      t.tile.classList.remove("shake"); void t.tile.offsetWidth; t.tile.classList.add("shake");
+    });
+    t.input.addEventListener("keydown", (e) => {
+      if (e.key === "Backspace" && !t.input.value && i > 0) { e.preventDefault(); tiles[i - 1].input.focus(); }
+    });
+  });
+  sayAgain.addEventListener("click", () => {
+    const n = nextOpen();
+    if (!n) return;
+    lock(n);
+    advance(tiles.indexOf(n));
+  });
+
+  if (store.get("y3-radio", false)) finish(false);
+
+  return section("radio", "05", "Comms", "Message from the ground",
+    h("p", { class: "sec-lede" }, "You know the pilot alphabet better than me. Fill in the letters."),
+    panel, actions);
+}
+
 // #6 — In-flight movie
 function renderMovie() {
   const root = h("div");
@@ -495,14 +480,14 @@ function renderMovie() {
       scrolling: "no",
       allow: "clipboard-write; encrypted-media; fullscreen; picture-in-picture",
     }));
-  return section("cinema", "05", "In-flight entertainment", "Now showing",
+  return section("cinema", "06", "In-flight entertainment", "Now showing",
     h("p", { class: "sec-lede" }, "Last year was a game. This year you get a movie. Press play, and stay for the end credits."),
     soundtrack, root);
 }
 
 // #7 — Final letter + boarding pass
 function renderFinal() {
-  return section("final", "06", "Final approach", "Final transmission",
+  return section("final", "07", "Final approach", "Final transmission",
     h("div", { class: "final-locked", id: "final-locked" },
       h("span", { class: "lock-icon", "aria-hidden": "true" }, "🔒"),
       h("p", {}, "Locked. Watch the movie (credits included) to receive the final transmission.")),
@@ -544,13 +529,13 @@ function unlockFinal(celebrate) {
           h("span", { class: "bp-airline" }, "✈ Co-Pilot Airways"),
           h("span", { class: "bp-kind mono" }, "Boarding pass")),
         h("div", { class: "bp-route" },
-          h("div", {}, h("span", { class: "bp-code" }, bp.fromCode || "DXB"), h("span", { class: "bp-city" }, bp.fromCity || "Dubai")),
+          h("div", {}, h("span", { class: "bp-code" }, bp.fromCode || "Y03"), h("span", { class: "bp-city" }, bp.fromCity || "Year three")),
           h("span", { class: "bp-arrow", "aria-hidden": "true" }, "✈"),
           h("div", { class: "bp-dest" }, h("span", { class: "bp-code" }, bp.toCode || "♡"), h("span", { class: "bp-city" }, bp.toCity || "My Arms"))),
         h("div", { class: "bp-grid" },
           field("Passenger", bp.passenger || content.name.toUpperCase(), "wide"),
           field("Flight", bp.flight || "IR 0929"),
-          field("Date", bp.date || "04 OCT 2026"),
+          field("Date", bp.date || "29 SEP 2026"),
           field("Gate", bp.gate || "ARRIVALS"),
           field("Seat", bp.seat || "1A"),
           field("Class", bp.class || "FOREVER"),
@@ -616,6 +601,5 @@ function observeReveals() {
 // ---------------------------------------------------------------------
 //  Go
 // ---------------------------------------------------------------------
-tickClocks();
 if (now() < UNLOCK && !params.has("preview")) startCountdown();
 else startChecklist();

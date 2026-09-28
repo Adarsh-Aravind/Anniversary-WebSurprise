@@ -11,7 +11,15 @@
 
     <div class="floating-elements"></div>
 
-    <section class="memory-game">
+    <form class="unlock" id="unlock">
+        <p>Enter our passcode to load the photos.</p>
+        <p class="hint" id="hint"></p>
+        <input id="pass" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Passcode" aria-label="Passcode">
+        <button type="submit">Start</button>
+        <p class="error" id="error" role="alert"></p>
+    </form>
+
+    <section class="memory-game" hidden>
         </section>
 
     <script src="script.js"></script>
