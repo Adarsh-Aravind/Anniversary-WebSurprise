@@ -4,7 +4,7 @@ import { initMovie } from "./movie.js";
 //  Time. `?now=2026-09-29T00:00:05+04:00` fakes the clock for testing,
 //  `?preview` skips the midnight countdown (content stays encrypted).
 // ---------------------------------------------------------------------
-// Midnight India time: she is still home when the anniversary starts, and flies out that morning.
+// Midnight India time: the anniversary starts while she's still home; she flies out that night.
 const UNLOCK = Date.parse("2026-09-29T00:00:00+05:30");
 const params = new URLSearchParams(location.search);
 const fakeNow = params.has("now") ? Date.parse(params.get("now")) : NaN;
